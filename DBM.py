@@ -338,6 +338,7 @@ if tf_load_data:
 """ train DBM parameters """
 size_minibatch = 20
 num_minibatch = X.shape[0] / size_minibatch
+# M = [14*14]   # width of hidden layers
 M = [14*14, 64]   # width of hidden layers
 
 """ parameters to initialize DBM """
@@ -351,6 +352,8 @@ masks_h[-1] = 0
 masks_h_predict = copy.copy(masks_h)
 masks_h_predict[-1] = 1
 # r_clone = [1.0*widths[0]/r for r in widths]
+# r_clone = [1.0, 1.0, 1.0]
+# r_clone = [1.0, 1.0, 10.0]
 r_clone = [1.0, 1.0, 2.0, 10.0]
 
 """ creaat dbm object """
@@ -407,10 +410,10 @@ for idx_epoch in range(2):
         if indx_minibatch % 500 == 0:
             print(indx_minibatch)
             draw_W(dbm.Ws[0].T, image_size=[14, 14], clim_scale=0.5)
-            plt.savefig('./temp_figs/temp_{}'.format(count))
+            plt.savefig('./temp_figs/temp_{}.pdf'.format(count))
 
         """ training snapshot: E, psudo_llh """
-        if indx_minibatch % 50 == 0:
+        if indx_minibatch % 20 == 0:
             Xs_cur_predict = copy.copy(Xs_cur)
             for h in range(1, dbm_predict.H):
                 Xs_cur_predict[h] = Xs_cur_predict[h] * 0
@@ -432,22 +435,19 @@ for idx_epoch in range(2):
         psudo_llh.append(np.mean(dbm.cal_psudo_llh()))
         count = count + 1
 
-plt.figure()
-plt.subplot(2, 2, 1)
-plt.plot(itrt_c,E)
-plt.xlabel('training iteration')
-plt.title('energy E(X)')
-plt.subplot(2, 2, 3)
-plt.plot(itrt_c,psudo_llh)
+plt.figure(figsize=[8,4])
+plt.subplot(1, 2, 1)
+plt.plot(itrt_c,psudo_llh, c='k')
+plt.ylim([-0.6, -0.3])
 plt.xlabel('training iteration')
 plt.title('psudo-log-likelihood log(p~(X))')
-plt.subplot(2, 2, 2)
-plt.plot(itrt_r_err, r_err)
+plt.subplot(1, 2, 2)
+plt.plot(itrt_r_err, r_err, c='k')
 plt.ylim([0, 1])
 plt.xlabel('training iteration')
 plt.title('classification error rate')
 plt.tight_layout()
-plt.savefig('./temp_figs/train_error')
+plt.savefig('./temp_figs/train_error.pdf')
 
 """ draw samples """
 masks_h_sample = [1]*H
@@ -469,7 +469,7 @@ for label in range(10):
         plt.axis('off')
         for i_gap in range(N_gap):
             dbm_sample.sample_layers(r_sample=1.0)
-plt.savefig('./temp_figs/sample')
+plt.savefig('./temp_figs/sample.pdf')
 # plt.close()
 
 plt.ion()
